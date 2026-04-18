@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CubeClosure — 心慌方·闭合</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./lib/three.module.js",
+      "three/addons/": "./lib/"
+    }
+  }
+  </script>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading">
+  <h2>CUBE</h2>
+  <p id="loading-msg">INITIALIZING SYSTEM</p>
+  <div class="spinner"></div>
+</div>
+
+<div id="app">
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <!-- Header -->
+    <div id="header">
+      <h1>CUBE</h1>
+      <div class="header-row">
+        <div class="subtitle" data-i18n="subtitle">心慌方 — 闭合机械系统</div>
+        <button id="lang-toggle" title="中文 / English">EN</button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="panel">
+      <div class="panel-title" data-i18n="controls">控制</div>
+
+      <div class="control-row">
+        <label data-i18n="grid">网格</label>
+        <select id="grid-size">
+          <option value="3">3 &times; 3 &times; 3</option>
+          <option value="5">5 &times; 5 &times; 5</option>
+          <option value="6">6 &times; 6 &times; 6</option>
+          <option value="8" selected>8 &times; 8 &times; 8</option>
+        </select>
+      </div>
+
+      <!-- Transport -->
+      <div class="transport">
+        <button id="btn-reset" title="Reset">&#x23EE;</button>
+        <button id="btn-prev" title="Previous step">&#x23EA;</button>
+        <button id="btn-play" class="play-btn" title="Play / Pause">&#x25B6;</button>
+        <button id="btn-next" title="Next step">&#x23E9;</button>
+      </div>
+
+      <!-- Phase display -->
+      <div id="phase-display">
+        <div class="phase-label" data-i18n="currentState">当前状态</div>
+        <div class="phase-title" id="phase-title">Phase 0（初始停靠）</div>
+        <div class="phase-step" id="phase-step">State 1 / 10</div>
+        <div class="phase-step" id="phase-state-num">Phase: 0</div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Speed -->
+      <div class="control-row" style="margin-top: 12px;">
+        <label data-i18n="speed">速度</label>
+        <input type="range" id="speed-slider" min="0.25" max="3" step="0.25" value="1">
+        <span class="speed-val" id="speed-val">1.0x</span>
+      </div>
+
+      <!-- Toggles -->
+      <div class="toggle-row">
+        <span data-i18n="serviceLayer">服务皮层</span>
+        <div id="toggle-service" class="toggle active"></div>
+      </div>
+      <div class="toggle-row">
+        <span data-i18n="roomTrails">房间轨迹</span>
+        <div id="toggle-trails" class="toggle active"></div>
+      </div>
+      <div class="toggle-row">
+        <span data-i18n="autoLoop">自动循环</span>
+        <div id="toggle-loop" class="toggle active"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="panel">
+      <div class="panel-title" data-i18n="statistics">统计</div>
+      <div class="stats">
+        <div class="stat-item">
+          <div class="stat-val" id="stat-grid">8&times;8&times;8</div>
+          <div class="stat-label" data-i18n="gridLabel">网格</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-rooms">512</div>
+          <div class="stat-label" data-i18n="totalRooms">总房间数</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-tracked">27</div>
+          <div class="stat-label" data-i18n="tracked">跟踪中</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-val" id="stat-phases">3</div>
+          <div class="stat-label" data-i18n="phases">阶段数</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Room Info -->
+    <div class="panel">
+      <div class="panel-title" data-i18n="roomInspector">房间检查器</div>
+      <div id="room-info">
+        <div class="no-selection" data-i18n="clickToInspect">点击房间以查看详情</div>
+      </div>
+    </div>
+
+    <!-- Math -->
+    <div class="panel">
+      <div class="panel-title" data-i18n="mathModel">数学模型</div>
+      <div class="math-block">
+        <span data-i18n="mathEncoding">编码公式</span>: <code>S = a + b + c</code><br>
+        <span data-i18n="mathPhasePos">阶段位置</span>:<br>
+        &nbsp;&nbsp;<code>p0 = S = a+b+c</code><br>
+        &nbsp;&nbsp;<code>p1 = 2a+c</code><br>
+        &nbsp;&nbsp;<code>p2 = 2a+b</code><br>
+        <span data-i18n="mathDisplacement">位移</span>:<br>
+        &nbsp;&nbsp;<code>D = (a-b, b-c, c-a)</code><br>
+        <span data-i18n="mathCycle">循环</span>: <code>P0 &rarr; P1 &rarr; P2 &rarr; P0</code>
+      </div>
+      <div class="math-block" style="margin-top: 8px; font-size: 11px;">
+        <span data-i18n="mathTransition">阶段转换对 X, Y, Z 三轴独立施加相同的一维排列。</span><br>
+        <code>P01 = f1</code> (S &rarr; 2a+c)<br>
+        <code>P12 = f2 &sdot; f1<sup>-1</sup></code><br>
+        <code>P20 = f2<sup>-1</sup></code>
+      </div>
+    </div>
+
+    <!-- Codebook -->
+    <div class="panel">
+      <div class="panel-title" data-i18n="codebookTitle">轴编码表 (26)</div>
+      <div class="codebook-wrapper">
+        <table class="codebook">
+          <thead>
+            <tr>
+              <th>S</th>
+              <th>abc</th>
+              <th>p0</th>
+              <th>p1</th>
+              <th>p2</th>
+              <th>&Delta;</th>
+            </tr>
+          </thead>
+          <tbody id="codebook-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D Viewport -->
+  <div id="viewport">
+    <div id="viewport-overlay">
+      <div class="overlay-label" data-i18n="orbitHint">拖拽旋转 · 滚轮缩放</div>
+    </div>
+    <div id="axis-legend">
+      <div class="axis-item"><div class="axis-dot" style="background:#ff4444"></div> X</div>
+      <div class="axis-item"><div class="axis-dot" style="background:#44ff44"></div> Y</div>
+      <div class="axis-item"><div class="axis-dot" style="background:#4488ff"></div> Z</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { setLang, getCurrentLang, t } from './js/i18n.js';
+
+  const loadMsg = document.getElementById('loading-msg');
+
+  try {
+    loadMsg.textContent = t('loadingModules');
+    const { buildStates } = await import('./js/codebook.js');
+    const { CubeScene } = await import('./js/scene.js');
+    const { AnimationController } = await import('./js/animation.js');
+    const { UIController } = await import('./js/ui.js');
+
+    loadMsg.textContent = t('buildingModel');
+
+    let cubeScene, animController, uiController;
+
+    function initSystem(n = 8) {
+      const model = buildStates(n);
+
+      cubeScene.setGridSize(n);
+      cubeScene.initRooms(model.states[0], model.trackedInitial);
+      cubeScene.snapToPositions(model.states[0]);
+      cubeScene.featuredRoom = 0;
+      cubeScene._updateFeaturedRoom();
+
+      animController.loadStates(model.states, model.titles);
+      animController.pause();
+
+      if (uiController) {
+        uiController.refresh(model);
+      }
+      return model;
+    }
+
+    function mainLoop(now) {
+      requestAnimationFrame(mainLoop);
+
+      const update = animController.update(now);
+      if (update) {
+        if (update.snap) {
+          cubeScene.snapToPositions(update.positions);
+        } else {
+          for (let i = 0; i < cubeScene.rooms.length && i < update.positions.length; i++) {
+            const [x, y, z] = update.positions[i];
+            cubeScene.rooms[i].currentPos = [x, y, z];
+            cubeScene.rooms[i].mesh.position.set(x, y, z);
+          }
+        }
+      }
+
+      if (uiController) uiController.update();
+      cubeScene.render();
+    }
+
+    loadMsg.textContent = t('creatingScene');
+    const viewport = document.getElementById('viewport');
+    cubeScene = new CubeScene(viewport);
+    animController = new AnimationController();
+
+    loadMsg.textContent = t('computingCodebook');
+    const model = initSystem(8);
+    uiController = new UIController(animController, cubeScene, model);
+
+    // Language toggle
+    const langBtn = document.getElementById('lang-toggle');
+    function updateLangBtn() {
+      langBtn.textContent = getCurrentLang() === 'zh' ? 'EN' : '中文';
+    }
+    updateLangBtn();
+    langBtn.addEventListener('click', () => {
+      const next = getCurrentLang() === 'zh' ? 'en' : 'zh';
+      setLang(next);
+      updateLangBtn();
+      uiController.onLangChange();
+    });
+
+    // Apply saved language
+    if (getCurrentLang() !== 'zh') {
+      setLang(getCurrentLang());
+      updateLangBtn();
+    }
+
+    // Grid change handler
+    document.addEventListener('gridchange', (e) => {
+      const n = e.detail.n;
+      const m = initSystem(n);
+      uiController.refresh(m);
+    });
+
+    // Hide loading screen
+    setTimeout(() => {
+      document.getElementById('loading').classList.add('hidden');
+    }, 300);
+
+    requestAnimationFrame(mainLoop);
+
+  } catch (err) {
+    loadMsg.textContent = 'ERROR: ' + err.message;
+    loadMsg.style.color = '#ff4466';
+    console.error(err);
+  }
+</script>
+
+</body>
+</html>
