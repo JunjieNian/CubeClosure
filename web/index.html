@@ -88,6 +88,11 @@
         <span data-i18n="autoLoop">自动循环</span>
         <div id="toggle-loop" class="toggle active"></div>
       </div>
+
+      <!-- Export -->
+      <div class="export-row">
+        <button id="btn-export-gif" class="export-btn" data-i18n="exportGIF">导出 GIF</button>
+      </div>
     </div>
 
     <!-- Stats -->
@@ -168,6 +173,18 @@
     <div id="viewport-overlay">
       <div class="overlay-label" data-i18n="orbitHint">拖拽旋转 · 滚轮缩放</div>
     </div>
+    <!-- Export progress overlay -->
+    <div id="export-overlay" class="export-overlay hidden">
+      <div class="export-modal">
+        <div class="export-modal-title" id="export-modal-title">导出 GIF...</div>
+        <div class="progress-bar export-pbar">
+          <div class="progress-fill" id="export-pbar-fill" style="width: 0%"></div>
+        </div>
+        <div class="export-modal-detail" id="export-modal-detail"></div>
+        <button id="btn-cancel-export" class="cancel-btn" data-i18n="exportCancel">取消</button>
+      </div>
+    </div>
+
     <div id="axis-legend">
       <div class="axis-item"><div class="axis-dot" style="background:#ff4444"></div> X</div>
       <div class="axis-item"><div class="axis-dot" style="background:#44ff44"></div> Y</div>
@@ -257,6 +274,69 @@
       setLang(getCurrentLang());
       updateLangBtn();
     }
+
+    // ---- GIF Export ----
+    const { exportGIF } = await import('./js/gif-export.js');
+    let exportAbort = null;
+
+    const exportBtn = document.getElementById('btn-export-gif');
+    const exportOverlay = document.getElementById('export-overlay');
+    const exportTitle = document.getElementById('export-modal-title');
+    const exportPbar = document.getElementById('export-pbar-fill');
+    const exportDetail = document.getElementById('export-modal-detail');
+    const cancelExportBtn = document.getElementById('btn-cancel-export');
+
+    exportBtn.addEventListener('click', async () => {
+      if (exportAbort) return; // already exporting
+      exportAbort = new AbortController();
+      exportOverlay.classList.remove('hidden');
+      exportBtn.disabled = true;
+
+      try {
+        const blob = await exportGIF(cubeScene, animController, {
+          width: 640,
+          height: 480,
+          framesPerTransition: 10,
+          restDelay: 60,
+          frameDelay: 10,
+          signal: exportAbort.signal,
+          onProgress: ({ phase, progress, detail }) => {
+            exportPbar.style.width = (progress * 100).toFixed(1) + '%';
+            exportDetail.textContent = detail || '';
+            if (phase === 'sampling')  exportTitle.textContent = t('exportSampling');
+            if (phase === 'capturing') exportTitle.textContent = t('exportCapturing');
+            if (phase === 'encoding')  exportTitle.textContent = t('exportEncoding');
+            if (phase === 'done')      exportTitle.textContent = t('exportDone');
+          },
+        });
+
+        if (blob) {
+          const n = cubeScene.n;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `cube_closure_${n}x${n}x${n}.gif`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 5000);
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('GIF export error:', err);
+          exportTitle.textContent = 'ERROR: ' + err.message;
+          await new Promise(r => setTimeout(r, 2000));
+        }
+      }
+
+      exportOverlay.classList.add('hidden');
+      exportBtn.disabled = false;
+      exportAbort = null;
+    });
+
+    cancelExportBtn.addEventListener('click', () => {
+      if (exportAbort) exportAbort.abort();
+    });
 
     // Grid change handler
     document.addEventListener('gridchange', (e) => {

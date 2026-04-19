@@ -565,6 +565,110 @@ table.codebook tr.active td {
   to { transform: rotate(360deg); }
 }
 
+/* ===== Export GIF ===== */
+.export-row {
+  margin-top: 14px;
+  display: flex;
+  justify-content: center;
+}
+
+.export-btn {
+  width: 100%;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: rgba(255, 204, 0, 0.10);
+  border: 1px solid rgba(255, 204, 0, 0.30);
+  color: var(--accent-yellow);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: rgba(255, 204, 0, 0.20);
+  box-shadow: 0 0 12px rgba(255, 204, 0, 0.2);
+  border-color: var(--accent-yellow);
+}
+
+.export-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Export overlay */
+.export-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 15, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  backdrop-filter: blur(4px);
+  transition: opacity 0.3s;
+}
+
+.export-overlay.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.export-modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 28px 36px;
+  text-align: center;
+  min-width: 280px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.export-modal-title {
+  font-size: 14px;
+  color: var(--accent-yellow);
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+
+.export-pbar {
+  height: 4px;
+  margin-bottom: 10px;
+}
+
+.export-pbar .progress-fill {
+  background: linear-gradient(90deg, var(--accent-yellow), var(--accent-green));
+  transition: width 0.15s;
+}
+
+.export-modal-detail {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  min-height: 16px;
+}
+
+.cancel-btn {
+  padding: 6px 20px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background: rgba(255, 68, 102, 0.10);
+  border: 1px solid rgba(255, 68, 102, 0.30);
+  color: var(--accent-red);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  background: rgba(255, 68, 102, 0.20);
+  border-color: var(--accent-red);
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
   #app { flex-direction: column-reverse; }

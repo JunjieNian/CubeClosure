@@ -49,6 +49,12 @@ const translations = {
     mathDisplacement:   "\u4f4d\u79fb",
     mathCycle:          "\u5faa\u73af",
     mathTransition:     "\u9636\u6bb5\u8f6c\u6362\u5bf9 X, Y, Z \u4e09\u8f74\u72ec\u7acb\u65bd\u52a0\u76f8\u540c\u7684\u4e00\u7ef4\u6392\u5217\u3002",
+    exportGIF:          "\u5bfc\u51fa GIF",
+    exportSampling:     "\u91c7\u6837\u989c\u8272\u4e2d...",
+    exportCapturing:    "\u6355\u6349\u5e27\u4e2d...",
+    exportEncoding:     "\u7f16\u7801 GIF \u4e2d...",
+    exportDone:         "\u5bfc\u51fa\u5b8c\u6210\uff01",
+    exportCancel:       "\u53d6\u6d88",
   },
 
   en: {
@@ -92,6 +98,12 @@ const translations = {
     mathDisplacement:   "Displacement",
     mathCycle:          "Cycle",
     mathTransition:     "Phase transitions apply the same 1D permutation independently on X, Y, Z axes.",
+    exportGIF:          "Export GIF",
+    exportSampling:     "Sampling colors...",
+    exportCapturing:    "Capturing frames...",
+    exportEncoding:     "Encoding GIF...",
+    exportDone:         "Export complete!",
+    exportCancel:       "Cancel",
   },
 };
 
