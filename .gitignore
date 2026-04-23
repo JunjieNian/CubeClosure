@@ -11,7 +11,7 @@ venv/
 env/
 
 # Generated output (large, should be regenerated)
-*.gif
+cube_prototype_vidualization.gif
 
 # Node (not used, but just in case)
 node_modules/
