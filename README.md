@@ -3,7 +3,7 @@
 **心慌方·闭合 — A Mathematically Closed Reconstruction of the Cube Movie's Room System**
 
 <p align="center">
-      <img src="cube_closure_8x8x8.gif" width="200" />
+      <img src="cube_closure_8x8x8.gif" width="500" />
 </p>
 
 ---
